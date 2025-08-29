@@ -1,19 +1,23 @@
 #pragma once 
 
 #include <string>
+#include <ncurses.h>
+#include <string>
 #include <vector>
-#include "color.hpp"
+#include "utils.hpp"
 
-class Dinosaur {
-private:
-    int h0; // Initial height
-    int t;  // Time since last jump
+struct Dinosaur {
+    std::vector<vec2i> pos;
+    std::string disp;
+    rect bounds;
+    bool jumping = false;
+    bool crouching = false;
+    int air_time = 0;
+    int max_air_time = 40;
+    int score = 0;
 
-public:
-    Dinosaur();
-    void update(bool jump);
-    int get_position() const;
-    void draw(std::vector<std::vector<Pixel>>& screen, int frame) const;
-    bool crashed(int ceiling, int floor) const;
-    bool crashed_into(int obs_col, int obs_height) const;
+    void draw(WINDOW* wnd);
+    void jump(WINDOW* wnd);
+    void crouch(WINDOW* wnd);
+    void updateBounds();
 }
