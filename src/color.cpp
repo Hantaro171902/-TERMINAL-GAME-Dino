@@ -1,10 +1,24 @@
 #include "color.hpp"
-#include <string>
 
-std::string getTextColor(TextColor color) {
-    return "\033[" + std::to_string(color) + "m";
-}
+using namespace std;
 
-std::string getResetColor() {
-    return "\033[0m";
+void initColors() {
+    start_color();
+
+    init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);
+    init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);
+    init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+    init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(COLOR_GRAY, COLOR_GRAY, COLOR_BLACK);
+    init_pair(COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);
+    init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
+    init_pair(COLOR_BG_GREEN, COLOR_BLACK, COLOR_BG_GREEN);
+    init_pair(COLOR_BRIGHT_RED, COLOR_BRIGHT_RED, COLOR_BLACK);
+    init_pair(COLOR_BRIGHT_GREEN, COLOR_BRIGHT_GREEN, COLOR_BLACK);
+    init_pair(COLOR_BRIGHT_YELLOW, COLOR_BRIGHT_YELLOW, COLOR_BLACK);
+    init_pair(COLOR_BRIGHT_BLUE, COLOR_BRIGHT_BLUE, COLOR_BLACK);
+    init_pair(COLOR_BRIGHT_MAGENTA, COLOR_BRIGHT_MAGENTA, COLOR_BLACK);
+    init_pair(COLOR_BRIGHT_CYAN, COLOR_BRIGHT_CYAN, COLOR_BLACK);
+    init_pair(COLOR_BRIGHT_WHITE, COLOR_BRIGHT_WHITE, COLOR_BLACK);
 }

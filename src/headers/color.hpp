@@ -1,32 +1,26 @@
 #pragma once
 #include <string>
+#include <ncurses.h>
 
 // ANSI color constants for Linux/Unix
 enum TextColor {
-    DEFAULT = 0,
-    RED = 31,
-    GREEN = 32,
-    YELLOW = 33,
-    BLUE = 34,
-    MAGENTA = 35,
-    GRAY = 30,
-    CYAN = 36,
-    WHITE = 37,
-    BG_GREEN = 42,
-    BRIGHT_RED = 91,
-    BRIGHT_GREEN = 92,
-    BRIGHT_YELLOW = 93,
-    BRIGHT_BLUE = 94,
-    BRIGHT_MAGENTA = 95,
-    BRIGHT_CYAN = 96,
-    BRIGHT_WHITE = 97
+    COLOR_DEFAULT = 1, // Start at 1 to match ncurses pair indexing
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_YELLOW,
+    COLOR_BLUE,
+    COLOR_MAGENTA,
+    COLOR_GRAY,
+    COLOR_CYAN,
+    COLOR_WHITE,
+    COLOR_BG_GREEN,
+    COLOR_BRIGHT_RED,
+    COLOR_BRIGHT_GREEN,
+    COLOR_BRIGHT_YELLOW,
+    COLOR_BRIGHT_BLUE,
+    COLOR_BRIGHT_MAGENTA,
+    COLOR_BRIGHT_CYAN,
+    COLOR_BRIGHT_WHITE
 };
 
-// A struct to hold both a character and its color
-struct Pixel {
-    char ch;
-    TextColor color;
-};
-
-std::string getTextColor(TextColor color);
-std::string getResetColor();
+void initColors();
