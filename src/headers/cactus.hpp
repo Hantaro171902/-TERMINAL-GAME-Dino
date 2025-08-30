@@ -2,14 +2,21 @@
 
 #include <string>
 #include <vector>
+#include <string>
+#include <ncurses.h>
+#include "game.hpp"
 #include "utils.hpp"
 
-struct Cactus {
-    std::vector<vec2i> pos;
-    std::string disp;
-    rect bounds;
-    bool active = true;
-
-    void draw(WINDOW* wnd);
-    void updateBounds();
+class Cactus {
+public:
+    Cactus();
+	bool update(WINDOW*, rect, int);
+	std::vector<Cactus> getObjects() const;
+	void setBounds(rect);
+	rect getBounds();
+private:
+    std::random_device m_rd;
+    std::mt19937 m_gen;
+	rect m_field_bounds;
+	std::vector<Cactus> m_object_set;
 }
