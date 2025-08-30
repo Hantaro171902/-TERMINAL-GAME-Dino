@@ -4,6 +4,7 @@
 #include <ctime>
 #include <random>
 #include <ncurses.h>
+#include <iostream>
 
 using namespace std;
 
