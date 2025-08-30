@@ -4,9 +4,11 @@
 #include <vector>
 #include <ncurses.h>
 #include <random>
-#include "utils.hpp"
 #include "game.hpp"
 
+
+class Ground;
+class Cactus;
 
 class Bird {
 public:
@@ -17,7 +19,7 @@ public:
     std::vector<vec2i> getPos() const;
     std::string getDispChar() const;
     bool getFielded();
-    void feildedToTrue();
+    void fieldedToTrue();
 
 private:
     std::vector<vec2i> m_positions;

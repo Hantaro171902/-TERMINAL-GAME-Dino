@@ -1,4 +1,5 @@
 #include "cactus.hpp"
+#include "bird.hpp"
 #include "game.hpp"
 #include <cstdint>
 #include <ctime>
@@ -10,15 +11,16 @@ using namespace std;
 
 Cactus::Cactus() : m_rd(), m_gen(m_rd()) {}
 
-rect Cactus::setBounds(rect a) {
+
+void Cactus::setBounds(rect a) {
     m_field_bounds = a;
 }
 
-void Cactus::getBounds() {
+rect Cactus::getBounds() {
     return m_field_bounds;
 }
 
-void Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
+bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
     int dist_index = rand() % 2;
 
   /* Update existing objects */

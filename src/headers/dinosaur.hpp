@@ -3,10 +3,9 @@
 #include <ncurses.h>
 #include <string>
 #include <vector>
-#include "utils.hpp"
 #include "game.hpp"
 
-struct Dinosaur {
+struct Player {
     std::vector<vec2i> pos;
     std::string disp_char{  "       ____ "
                             "      /0___}"
@@ -43,4 +42,4 @@ void movePlayerUp(WINDOW *window, Player *player);
 void movePlayerDown(WINDOW *window, Player *player);
 void crouchPlayer(WINDOW *window, Player *player);
 void playerFeetAnimation(WINDOW *window, Player *player);
-void playerDead();
+// void playerDead();

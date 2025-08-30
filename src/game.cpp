@@ -1,5 +1,4 @@
 #include "game.hpp"
-#include "utils.hpp"
 #include "cursor_input.hpp"
 #include "color.hpp"
 #include "dinosaur.hpp"
@@ -77,7 +76,7 @@ int init() {
 
 
 bool run(int &max_score) {
-    Dino player;
+    Player player;
     int start_x = 5;
     player.initDefault(start_x, ground_y);
     player.max_air_time = 20;

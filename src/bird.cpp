@@ -4,6 +4,11 @@
 #include <ctime>
 #include <random>
 #include <ncurses.h>
+#include <vector>
+#include <string>
+#include <iostream>
+
+using namespace std;
 
 int tick = 0;
 

@@ -4,8 +4,9 @@
 #include <vector>
 #include <string>
 #include <ncurses.h>
+#include <iostream>
+#include <random>
 #include "game.hpp"
-#include "utils.hpp"
 
 class Cactus {
 public:
@@ -19,4 +20,4 @@ private:
     std::mt19937 m_gen;
 	rect m_field_bounds;
 	std::vector<Cactus> m_object_set;
-}
+};
