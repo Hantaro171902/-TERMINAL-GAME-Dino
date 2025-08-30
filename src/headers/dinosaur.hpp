@@ -1,23 +1,46 @@
 #pragma once 
 
-#include <string>
 #include <ncurses.h>
 #include <string>
 #include <vector>
 #include "utils.hpp"
+#include "game.hpp"
 
 struct Dinosaur {
     std::vector<vec2i> pos;
-    std::string disp;
-    rect bounds;
-    bool jumping = false;
-    bool crouching = false;
-    int air_time = 0;
-    int max_air_time = 40;
-    int score = 0;
+    std::string disp_char{  "       ____ "
+                            "      /0___}"
+                            ",     ||    "
+                            "|\\   / |    "
+                            "| \\_/  =    "
+                            " \\     |    "
+                            "  \\ _  /    "
+                            "  |/ [\\     "
+                            "__[\\_______"};
 
-    void draw(WINDOW* wnd);
-    void jump(WINDOW* wnd);
-    void crouch(WINDOW* wnd);
-    void updateBounds();
-}
+    std::vector<vec2i> crouch_pos;
+
+    std::string crouch_disp_char{",         ____ "
+                                "|\\_______/0___}"
+                                " \\       /     "
+                                "  \\  _  /=     "
+                                "   |/ [\\       "
+                                "___[\\__________"};
+    bool crouched;
+    bool up;
+
+    int air_time;
+    int max_air_time;
+
+    int score;
+
+    rect bounds;
+};
+
+void initPlayerPosition(WINDOW *window, Player *player);
+void clearPlayerPosition(WINDOW *window, Player *player);
+void movePlayerUp(WINDOW *window, Player *player);
+void movePlayerDown(WINDOW *window, Player *player);
+void crouchPlayer(WINDOW *window, Player *player);
+void playerFeetAnimation(WINDOW *window, Player *player);
+void playerDead();
