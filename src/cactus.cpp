@@ -16,25 +16,31 @@ void Cactus::setBounds(rect a) {
     m_field_bounds = a;
 }
 
-rect Cactus::getBounds() {
+rect Cactus::getBounds() const {
     return m_field_bounds;
 }
 
+vector<Bird> Cactus::getObjects() const {
+    return m_object_set;
+}
+
 bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
-    int dist_index = rand() % 2;
+    // int dist_index = rand() % 2;
+    uniform_int_distribution<int> dist01(0, 1);
+    int dist_index = dist01(m_gen);
 
   /* Update existing objects */
   for (auto current_point{m_object_set.begin()};
        current_point != m_object_set.end(); ++current_point) {
 
-    auto &current_object = *current_point;
+    Bird &current_object = *current_point;
 
     if (current_object.getLastPos().x < m_field_bounds.left()) {
       m_object_set.erase(current_point);
     }
 
     if (current_object.getFielded() || current_point == m_object_set.begin()) {
-      current_object.update(game_wnd);
+      current_object.update(wnd);
 
       vector<vec2i> obj_pos = current_object.getPos();
       size_t length = current_object.getDispChar().size();
@@ -51,7 +57,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
           abs(previous_object.getLastPos().x - current_object.getLastPos().x);
       if (dist_index == 0) {
         if (diff >= 60) {
-          current_object.update(game_wnd);
+          current_object.update(wnd);
         }
       }
     }
@@ -69,7 +75,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
 
     string dc; /* Display characters */
 
-    int y_start;
+    int y_start = 0;
 
     switch (object_type) {
     case 0: {
@@ -95,7 +101,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
            " _| |_ "
            "|_____|";
 
-      Cactus obj0{p, dc, 0};
+      Bird obj0{p, dc, 0};
       m_object_set.push_back(obj0);
       break;
     }
@@ -128,7 +134,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
            "  | |  "
            "__|_|__";
 
-      Cactus obj1{p, dc, 1};
+      Bird obj1{p, dc, 1};
       m_object_set.push_back(obj1);
       break;
     }
@@ -184,7 +190,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
            "    | |    "
            "____|_|____";
 
-      Cactus obj2{p, dc, 2};
+      Bird obj2{p, dc, 2};
       m_object_set.push_back(obj2);
       break;
     }
@@ -220,7 +226,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
            "| |_| |_| |"
            "|_________|";
 
-      Cactus obj3{p, dc, 3};
+      Bird obj3{p, dc, 3};
       m_object_set.push_back(obj3);
       break;
     }
@@ -257,7 +263,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
            "  | |  "
            "__|_|__";
 
-      Cactus obj4{p, dc, 4};
+      Bird obj4{p, dc, 4};
       m_object_set.push_back(obj4);
       break;
     }
@@ -307,7 +313,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
            "   |/    "
            "   '     ";
 
-      Cactus obj5{p, dc, 5};
+      Bird obj5{p, dc, 5};
       m_object_set.push_back(obj5);
       break;
     }
@@ -357,7 +363,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
            "   |/    "
            "___'_____";
 
-      Cactus obj6{p, dc, 6};
+      Bird obj6{p, dc, 6};
       m_object_set.push_back(obj6);
       break;
     }

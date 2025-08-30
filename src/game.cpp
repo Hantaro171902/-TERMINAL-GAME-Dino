@@ -1,7 +1,6 @@
 #include "game.hpp"
-#include "cursor_input.hpp"
-#include "color.hpp"
 #include "dinosaur.hpp"
+#include "ground.hpp"
 #include "cactus.hpp"
 #include "bird.hpp"
 
@@ -33,7 +32,7 @@ bool isCollided(rect a, rect b) {
 int init() {
     srand(static_cast<unsigned>(time(nullptr)));
 
-    main_wnd - initscr();
+    main_wnd = initscr();
 
     cbreak();
     noecho();
@@ -42,7 +41,7 @@ int init() {
 
     curs_set(0);
 
-    start_color()
+    start_color();
 
     screen_area = {{0, 0}, {80, 24}};
 
@@ -76,168 +75,183 @@ int init() {
 
 
 bool run(int &max_score) {
-    Player player;
-    int start_x = 5;
-    player.initDefault(start_x, ground_y);
-    player.max_air_time = 20;
+  Cactus field;
+  GroundField df;
 
-    std::vector<Cactus> cactuses;
-    std::vector<Bird> birds;
+  Player player;
+  player.up = false;
+  player.score = 0;
 
-    bool game_over = false;
-    int tick = 0;
-    int spawn_ticks = 0;
-    int spawn_interval = 40; // frames between obstacle attempts
-    int score = 0;
+  int tick = 0;
 
-    std::mt19937 rng((unsigned)std::chrono::high_resolution_clock::now().time_since_epoch().count());
-    std::uniform_int_distribution<int> birdchance(0, 4);
-    std::uniform_int_distribution<int> birdheight(ground_y - 6, ground_y - 10);
+  int speed_tick = 0;
+  int speed_tick_cap = 2; /* Increment or decrement to control obstacl speed */
 
-    // initial ground draw
-    werase(game_wnd);
-    mvwhline(game_wnd, ground_y, 0, '_', screen_w-2);
-    wrefresh(game_wnd);
+  int dirt_tick = 0;
+  const int dirt_tick_cap = 2;
 
-    // game loop
-    while (true) {
-        int ch = getInputNonBlocking();
-        if (ch != ERR) {
-            if (ch == 'q') {
-                return true; // quit whole program
-            } else if (ch == 'r' && game_over) {
-                return false; // retry the game
-            } else if ((ch == ' ' || ch == 'w' || ch == KEY_UP) && !game_over) {
-                if (!player.up) {
-                    player.moveUp();
-                }
-            } else if ((ch == 's' || ch == KEY_DOWN) && !game_over) {
-                player.crouch();
-            } else if (ch == ERR) {
-                // nothing
-            }
-        }
+  player.air_time = 0;
+  player.max_air_time =
+      58; /* Increment or decrement to control player air time */
 
-        // Clear window and redraw
-        werase(game_wnd);
-        // draw ground
-        wattron(game_wnd, COLOR_PAIR(2));
-        mvwhline(game_wnd, ground_y, 0, '_', screen_w-2);
-        wattroff(game_wnd, COLOR_PAIR(2));
+  int feet_tick = 0;
 
-        // handle player vertical movement (very simple physics)
-        if (!game_over) {
-            if (player.up) {
-                // jump: move up for a short time then fall
-                if (player.air_time < player.max_air_time) {
-                    // move sprite up 1 row every few ticks
-                    if (tick % 2 == 0) {
-                        for (auto &p : player.pos) p.y -= 1;
-                        for (auto &p : player.crouch_pos) p.y -= 1;
-                    }
-                } else {
-                    // reached peak, start descending
-                    player.up = false;
-                }
-                player.air_time++;
-            } else {
-                // fall back to ground if above ground
-                // ensure bottom-most y equals ground (player was set relative)
-                int current_bottom = player.pos.back().y;
-                int target_bottom = ground_y - 0; // allow sprite bottom at ground_y
-                if (current_bottom < target_bottom) {
-                    if (tick % 2 == 0) {
-                        for (auto &p : player.pos) p.y += 1;
-                        for (auto &p : player.crouch_pos) p.y += 1;
-                    }
-                } else {
-                    // landed
-                    player.air_time = 0;
-                }
-            }
-            // if no crouch key pressed, stand
-            if (ch != 's' && ch != KEY_DOWN) player.stand();
-        }
+  int in_char = 0;
 
-        // spawn obstacles periodically
-        if (!game_over) {
-            spawn_ticks++;
-            if (spawn_ticks >= spawn_interval) {
-                spawn_ticks = 0;
-                // randomize what to spawn
-                int r = std::rand() % 6;
-                if (r < 4) { // spawn cactus
-                    Cactus c(screen_w - 6, ground_y);
-                    cactuses.push_back(c);
-                } else { // spawn bird at random height
-                    int bh = birdheight(rng);
-                    Bird b(screen_w - 6, bh);
-                    birds.push_back(b);
-                }
-            }
-        }
+  bool game_over = false;
 
-        // update & draw obstacles
-        for (auto it = cactuses.begin(); it != cactuses.end(); ) {
-            it->update();
-            if (!game_over) it->draw(game_wnd);
-            if (it->offscreen(0)) it = cactuses.erase(it);
-            else ++it;
-        }
-        for (auto it = birds.begin(); it != birds.end(); ) {
-            it->update();
-            if (!game_over) it->draw(game_wnd);
-            if (it->offscreen(0)) it = birds.erase(it);
-            else ++it;
-        }
+  field.setBounds(game_area);
+  df.setBounds(dirt_area);
 
-        // draw player
-        player.updateBounds();
-        if (!game_over) player.draw(game_wnd);
+  // frame around screen
+  wattron(main_wnd, A_BOLD);
+  box(main_wnd, 0, 0);
+  wattroff(main_wnd, A_BOLD);
 
-        // collision detection
-        player.updateBounds();
-        for (const auto &c : cactuses) {
-            if (isCollided(player.bounds, c.bounds)) {
-                game_over = true;
-            }
-        }
-        for (const auto &b : birds) {
-            if (isCollided(player.bounds, b.bounds)) {
-                game_over = true;
-            }
-        }
+  // initial draw
+  wrefresh(main_wnd);
+  wrefresh(game_wnd);
 
-        // score
-        if (!game_over) {
-            if (tick % 4 == 0) score++;
-            player.score = score;
-            if (score > max_score) max_score = score;
-        }
+  // mvwprintw(main_wnd, 0, 0, "press SPACE to start...");
 
-        // HUD
-        wattron(game_wnd, A_BOLD);
-        mvwprintw(game_wnd, 0, 1, "SCORE: %d  HIGH: %d", score, max_score);
-        wattroff(game_wnd, A_BOLD);
+  // Seed dirt field
+  df.seed();
+  wattroff(game_wnd, A_BOLD);
+  df.update(game_wnd);
+  wattron(game_wnd, A_BOLD);
 
-        if (game_over) {
-            mvwprintw(game_wnd, 4, 10, "=== GAME OVER ===");
-            mvwprintw(game_wnd, 6, 8, "Press 'r' to retry or 'q' to quit");
-        }
+  wattron(game_wnd, A_BOLD);
 
-        wrefresh(game_wnd);
-        usleep(30000); // ~30ms per frame
+  // Draw dino to terminal
+  initPlayerPosition(game_wnd, &player);
+  mvwhline(game_wnd, screen_area.bot() - 5, 0, '_', screen_area.width() - 2);
+  wrefresh(game_wnd);
 
-        tick++;
-        // increase difficulty a bit
-        if (tick % 1000 == 0 && spawn_interval > 12) spawn_interval -= 2;
+  while (1) {
+    in_char = wgetch(main_wnd);
+    in_char = tolower(in_char);
+
+    if (player.air_time == player.max_air_time && player.up) {
+      player.air_time = 0;
+      player.up = false;
+
+      movePlayerDown(game_wnd, &player);
     }
 
-    // unreachable
-    return true;
+    switch (in_char) {
+    case KEY_UP:
+    case ' ':
+    case 'w':
+      if (!player.up) {
+        movePlayerUp(game_wnd, &player);
+        player.up = true;
+      }
+      break;
+    case KEY_DOWN:
+    case 's':
+      if (player.up) { /* Cancel jump */
+        player.air_time = 0;
+        player.up = false;
+
+        movePlayerDown(game_wnd, &player);
+        break;
+      }
+
+      crouchPlayer(game_wnd, &player);
+      break;
+    default:
+      break;
+    }
+
+    size_t p_length = player.disp_char.size();
+    size_t c_length = player.crouch_disp_char.size();
+    if (player.crouched) {
+      player.bounds = {{player.crouch_pos[0].x, player.crouch_pos[0].y},
+                       {player.crouch_pos[c_length - 1].x,
+                        player.crouch_pos[c_length - 1].y}};
+    } else {
+      player.bounds = {
+          {player.pos[0].x, player.pos[0].y},
+          {player.pos[p_length - 1].x, player.pos[p_length - 1].y}};
+    }
+
+    if (tick >= 200) {
+      speed_tick++;
+      if (speed_tick == speed_tick_cap) {
+        speed_tick = 0;
+        if (field.update(game_wnd, player.bounds, player.score)) {
+          /* Collision occured; game over*/
+          game_over = true;
+        };
+      }
+    }
+
+    if (dirt_tick == dirt_tick_cap) {
+      dirt_tick = 0;
+      wattroff(game_wnd, A_BOLD);
+      df.update(game_wnd);
+      wattron(game_wnd, A_BOLD);
+    }
+
+    if (feet_tick == 17) {
+      feet_tick = 0;
+      if (!player.up)
+        playerFeetAnimation(game_wnd, &player);
+    }
+
+    wrefresh(main_wnd);
+    wrefresh(game_wnd);
+
+    if (game_over) {
+      max_score = player.score > max_score ? player.score : max_score;
+      // Print game over message and prompt user for input
+      nodelay(game_wnd, false);
+      int input;
+      // wattron(game_wnd, A_BLINK); Uncomment for blinking "GAME OVER" effect
+      mvwprintw(game_wnd, 9, 35, "GAME OVER");
+      // wattroff(game_wnd, A_BLINK); Uncomment for blinking "GAME OVER" effect
+      mvwprintw(game_wnd, 11, 29, "press 'q' to exit");
+      mvwprintw(game_wnd, 12, 29, "press 'r' to retry");
+      wrefresh(game_wnd);
+      usleep(50000); /* Gotta let the gamer read the info */
+      flushinp();
+
+      while (1) {
+      input = wgetch(game_wnd);
+      input = tolower(input);
+
+        switch (input) {
+        case 'r':
+          return false; // quit game
+        case 'q':
+          return true;
+        }
+      }
+    }
+
+    if (player.up)
+      player.air_time++;
+
+    if (tick % 5 == 0) {
+      // increase player score
+      player.score += 1;
+    }
+
+    mvwprintw(game_wnd, 0, 58, "HIGH SCORE: %8d", max_score);
+    mvwprintw(game_wnd, 1, 55, "CURRENT SCORE: %8d", player.score);
+    wrefresh(game_wnd);
+
+    feet_tick++;
+    dirt_tick++;
+    tick++;
+
+    if (player.score > 1500) {
+      speed_tick_cap = 1;
+      player.max_air_time = 43;
+    }
+
+    usleep(10000);
+  }
 }
 
-void close() {
-    if (game_wnd) delwin(game_wnd);
-    endwin();
-}
+void close() { endwin(); }

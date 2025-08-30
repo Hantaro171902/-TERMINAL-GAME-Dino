@@ -21,7 +21,7 @@ struct rect
 };
 
 
-bool isCollied(rect a, rect b);
+bool isCollided(rect a, rect b);
 int init();
 bool run(int& max_score);
 void close();

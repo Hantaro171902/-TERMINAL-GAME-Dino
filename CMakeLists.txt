@@ -16,8 +16,6 @@ set(SOURCES
     src/dinosaur.cpp
     src/cactus.cpp
     src/game.cpp
-    src/cursor_input.cpp
-    src/color.cpp
 )
 
 set(HEADERS
@@ -27,8 +25,6 @@ set(HEADERS
     src/headers/dinosaur.hpp
     src/headers/cactus.hpp
     src/headers/game.hpp
-    src/headers/cursor_input.hpp
-    src/headers/color.hpp
 )
 
 # Exe
