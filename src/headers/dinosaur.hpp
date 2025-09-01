@@ -1,9 +1,9 @@
 #pragma once 
 
-#include <ncurses.h>
 #include <string>
 #include <vector>
 #include "game.hpp"
+#include "ansi_renderer.hpp"
 
 struct Player {
     std::vector<vec2i> pos;
@@ -36,10 +36,10 @@ struct Player {
     rect bounds;
 };
 
-void initPlayerPosition(WINDOW *window, Player *player);
-void clearPlayerPosition(WINDOW *window, Player *player);
-void movePlayerUp(WINDOW *window, Player *player);
-void movePlayerDown(WINDOW *window, Player *player);
-void crouchPlayer(WINDOW *window, Player *player);
-void playerFeetAnimation(WINDOW *window, Player *player);
+void initPlayerPosition(class ANSIRenderer *renderer, Player *player);
+void clearPlayerPosition(class ANSIRenderer *renderer, Player *player);
+void movePlayerUp(class ANSIRenderer *renderer, Player *player);
+void movePlayerDown(class ANSIRenderer *renderer, Player *player);
+void crouchPlayer(class ANSIRenderer *renderer, Player *player);
+void playerFeetAnimation(class ANSIRenderer *renderer, Player *player);
 // void playerDead();

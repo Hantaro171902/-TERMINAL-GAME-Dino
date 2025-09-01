@@ -1,10 +1,10 @@
 #include "cactus.hpp"
 #include "bird.hpp"
 #include "game.hpp"
+#include "ansi_renderer.hpp"
 #include <cstdint>
 #include <ctime>
 #include <random>
-#include <ncurses.h>
 #include <iostream>
 
 using namespace std;
@@ -24,7 +24,7 @@ vector<Bird> Cactus::getObjects() const {
     return m_object_set;
 }
 
-bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
+bool Cactus::update(ANSIRenderer* renderer, rect player_rect, int player_score) {
     // int dist_index = rand() % 2;
     uniform_int_distribution<int> dist01(0, 1);
     int dist_index = dist01(m_gen);
@@ -40,7 +40,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
     }
 
     if (current_object.getFielded() || current_point == m_object_set.begin()) {
-      current_object.update(wnd);
+      current_object.update(renderer);
 
       vector<vec2i> obj_pos = current_object.getPos();
       size_t length = current_object.getDispChar().size();
@@ -57,7 +57,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
           abs(previous_object.getLastPos().x - current_object.getLastPos().x);
       if (dist_index == 0) {
         if (diff >= 60) {
-          current_object.update(wnd);
+          current_object.update(renderer);
         }
       }
     }
@@ -96,10 +96,10 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
           {fb.bounds.x - 3, y_start + 3}, {fb.bounds.x - 2, y_start + 3},
           {fb.bounds.x - 1, y_start + 3}, {fb.bounds.x, y_start + 3}};
 
-      dc = "   _   "
-           "  | |  "
-           " _| |_ "
-           "|_____|";
+      dc = "   _    "
+           "  | |  _ "
+           " _| |_| | "
+           "\\_______/";
 
       Bird obj0{p, dc, 0};
       m_object_set.push_back(obj0);
@@ -128,11 +128,11 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
           {fb.bounds.x - 2, y_start + 4}, {fb.bounds.x - 1, y_start + 4},
           {fb.bounds.x, y_start + 4}};
 
-      dc = " _   _ "
-           "| |_| |"
-           "|_   _|"
-           "  | |  "
-           "__|_|__";
+      dc = "  _   _  "
+           "-| |_| | "
+           "\\_  _/  "
+           "   | |-  "
+           " __|_|__ ";
 
       Bird obj1{p, dc, 1};
       m_object_set.push_back(obj1);
@@ -182,13 +182,13 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
           {fb.bounds.x - 2, y_start + 6},  {fb.bounds.x - 1, y_start + 6},
           {fb.bounds.x, y_start + 6}};
 
-      dc = "     _     "
-           "    | |    "
-           " _  | |  _ "
-           "| |_| |_| |"
-           "|___   ___|"
-           "    | |    "
-           "____|_|____";
+      dc = "      _      " 
+           "     | |-    "
+           "  _  | |  _  "
+           " | |_| |_| |-"
+           "-\\__   __/  "
+           "     | |     "
+           " ____|_|____ ";
 
       Bird obj2{p, dc, 2};
       m_object_set.push_back(obj2);
@@ -221,10 +221,10 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
           {fb.bounds.x - 3, y_start + 3},  {fb.bounds.x - 2, y_start + 3},
           {fb.bounds.x - 1, y_start + 3},  {fb.bounds.x, y_start + 3}};
 
-      dc = "     _     "
-           " _  | |  _ "
-           "| |_| |_| |"
-           "|_________|";
+      dc = "     _      "
+           " _ -| |  _  "
+           "| |_| |_| |-"
+           "\\_________/";
 
       Bird obj3{p, dc, 3};
       m_object_set.push_back(obj3);
@@ -259,7 +259,7 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
       dc = " _   _ "
            "| | | |"
            "| |_| |"
-           "|_   _|"
+           "\\_   _/"
            "  | |  "
            "__|_|__";
 
@@ -305,13 +305,13 @@ bool Cactus::update(WINDOW* wnd, rect player_rect, int player_score) {
           {fb.bounds.x, y_start + 6},
       };
 
-      dc = "         "
-           "         "
-           "  _____  "
-           ">|_   _\\="
-           "   | /   "
-           "   |/    "
-           "   '     ";
+      dc = "   _  _      "
+           "  | || | _   "
+           " -| || || |  "
+           "  | || || |- "
+           "   \\_  || | "
+           "     |  _/   "
+           "   __|_|__   ";
 
       Bird obj5{p, dc, 5};
       m_object_set.push_back(obj5);

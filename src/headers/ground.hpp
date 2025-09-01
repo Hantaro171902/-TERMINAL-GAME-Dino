@@ -3,14 +3,14 @@
 #include <random>
 #include <vector>
 #include <string>
-#include <ncurses.h>
-
+#include "ansi_renderer.hpp"
 #include "game.hpp"
+
 
 class Ground {
 public:
 	Ground(int, int, char);
-	void update(WINDOW*);
+	void update(class ANSIRenderer*);
 	vec2i getPos() const;
 private:
 	char m_disp_char;
@@ -19,7 +19,7 @@ private:
 
 class GroundField {
 public:
-	void update(WINDOW*);
+	void update(class ANSIRenderer*);
 	void setBounds(rect);
 	void seed();
 	rect getBounds();

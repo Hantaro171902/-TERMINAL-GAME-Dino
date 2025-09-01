@@ -1,9 +1,9 @@
 #include "bird.hpp"
 #include "game.hpp"
+#include "ansi_renderer.hpp"
 #include <cstdint>
 #include <ctime>
 #include <random>
-#include <ncurses.h>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -27,20 +27,20 @@ string Bird::getDispChar() const { return m_disp_char; }
 
 void Bird::fieldedToTrue() { m_fielded = true; }
 
-void Bird::update(WINDOW *game_wnd) {
+void Bird::update(ANSIRenderer *game_renderer) {
   for (size_t i = 0; i < m_disp_char.size(); i++) {
     if (m_positions[i].y == 19) {
-      mvwaddch(game_wnd, m_positions[i].y, m_positions[i].x, '_');
+      game_renderer->drawChar(m_positions[i].x, m_positions[i].y, '_', WHITE, DEFAULT);
     } else {
-      mvwaddch(game_wnd, m_positions[i].y, m_positions[i].x, ' ');
+      game_renderer->drawChar(m_positions[i].x, m_positions[i].y, ' ', DEFAULT, DEFAULT);
     }
   }
 
-  render(game_wnd);
+  render(game_renderer);
   fieldedToTrue(); /* Object is now in the object field/game window */
 }
 
-void Bird::render(WINDOW *game_wnd) {
+void Bird::render(ANSIRenderer *game_renderer) {
   if (m_type == 6 && tick >= 20) {
     tick = 0;
     if (m_disp_char[5] == ',') {
@@ -87,8 +87,7 @@ void Bird::render(WINDOW *game_wnd) {
 
   for (size_t i = 0; i < m_disp_char.size(); i++) {
     m_positions[i].x -= 1;
-    mvwaddch(game_wnd, m_positions[i].y, m_positions[i].x,
-             static_cast<unsigned>(m_disp_char[i]));
+    game_renderer->drawChar(m_positions[i].x, m_positions[i].y, m_disp_char[i], OBSTACLE_COLOR, DEFAULT);
   }
   tick++;
 }

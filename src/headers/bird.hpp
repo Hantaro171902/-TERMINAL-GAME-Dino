@@ -2,9 +2,9 @@
 
 #include <string>
 #include <vector>
-#include <ncurses.h>
 #include <random>
 #include "game.hpp"
+#include "ansi_renderer.hpp"
 
 
 class Ground;
@@ -13,8 +13,8 @@ class Cactus;
 class Bird {
 public:
     Bird(std::vector<vec2i>, std::string, int);
-    void render(WINDOW*);
-    void update(WINDOW*);
+    void render(class ANSIRenderer*);
+    void update(class ANSIRenderer*);
     vec2i getLastPos() const;
     std::vector<vec2i> getPos() const;
     std::string getDispChar() const;

@@ -40,6 +40,8 @@ set(SOURCES
     src/game.cpp
     src/ground.cpp
     src/dinosaur.cpp
+    src/ansi_renderer.cpp
+    src/color.cpp
 )
 
 set(HEADERS
@@ -48,6 +50,8 @@ set(HEADERS
     src/headers/game.hpp
     src/headers/ground.hpp
     src/headers/dinosaur.hpp
+    src/headers/ansi_renderer.hpp
+    src/headers/color.hpp
 )
 
 # Exe
@@ -57,13 +61,7 @@ target_include_directories(Dino PRIVATE src/headers)
 
 # target_sources(dinosaur_game PRIVATE src/main.cpp src/game.cpp src/obstacles.cpp src/player.cpp)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(NCURSES
-    REQUIRED
-    IMPORTED_TARGET
-    ncurses)
-
-target_link_libraries(Dino PRIVATE PkgConfig::NCURSES project_options project_warnings)
+target_link_libraries(Dino PRIVATE project_options project_warnings)
 
 include(cmake/CreateTargetLink.cmake)
 CreateTargetLink(Dino)

@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include "dinosaur.hpp"
+#include "ansi_renderer.hpp"
 
 int main() {
 	int max_score = 0;

@@ -3,18 +3,21 @@
 #include "ground.hpp"
 #include "cactus.hpp"
 #include "bird.hpp"
+#include "ansi_renderer.hpp"
 
-#include <ncurses.h>
 #include <unistd.h>
 #include <vector>
 #include <chrono>
 #include <random>
 #include <iostream>
+#include <sys/select.h>
+#include <cstdlib>
+#include <cstdio>
 
 using namespace std;
 
-WINDOW *main_wnd;
-WINDOW *game_wnd;
+ANSIRenderer *main_renderer;
+ANSIRenderer *game_renderer;
 
 rect game_area;
 rect screen_area;
@@ -32,43 +35,13 @@ bool isCollided(rect a, rect b) {
 int init() {
     srand(static_cast<unsigned>(time(nullptr)));
 
-    main_wnd = initscr();
-
-    cbreak();
-    noecho();
-    clear();
-    refresh();
-
-    curs_set(0);
-
-    start_color();
-
     screen_area = {{0, 0}, {80, 24}};
-
-    game_wnd = newwin(screen_area.height() - 2, screen_area.width() - 2,
-                    screen_area.top() + 1, screen_area.left() + 1);
-
-    main_wnd = newwin(screen_area.height(), screen_area.width(), 0, 0);
-
     game_area = {{0, 0}, {screen_area.width() - 2, screen_area.height() - 2}};
-
     dirt_area = {{0, 19}, {screen_area.width() - 2, screen_area.height() - 2}};
 
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);
-    init_pair(2, COLOR_BLACK, COLOR_WHITE);
-
-    /* Enable function keys */
-    keypad(main_wnd, true);
-    keypad(game_wnd, true);
-
-    nodelay(main_wnd, true);
-    nodelay(game_wnd, true);
-
-    if (!has_colors()) {
-        endwin();
-        printf("ERROR: Terminal does not support color.\n");
-        exit(1);
-    }
+    // Create renderers
+    main_renderer = new ANSIRenderer(screen_area.width(), screen_area.height());
+    game_renderer = new ANSIRenderer(game_area.width(), game_area.height());
 
     return 0;
 }
@@ -104,32 +77,43 @@ bool run(int &max_score) {
   df.setBounds(dirt_area);
 
   // frame around screen
-  wattron(main_wnd, A_BOLD);
-  box(main_wnd, 0, 0);
-  wattroff(main_wnd, A_BOLD);
+  main_renderer->drawBox(0, 0, screen_area.width(), screen_area.height(), WHITE, DEFAULT);
 
   // initial draw
-  wrefresh(main_wnd);
-  wrefresh(game_wnd);
+  main_renderer->refresh();
+  game_renderer->refresh();
 
   // mvwprintw(main_wnd, 0, 0, "press SPACE to start...");
 
   // Seed dirt field
   df.seed();
-  wattroff(game_wnd, A_BOLD);
-  df.update(game_wnd);
-  wattron(game_wnd, A_BOLD);
-
-  wattron(game_wnd, A_BOLD);
+  df.update(game_renderer);
 
   // Draw dino to terminal
-  initPlayerPosition(game_wnd, &player);
-  mvwhline(game_wnd, screen_area.bot() - 5, 0, '_', screen_area.width() - 2);
-  wrefresh(game_wnd);
+  initPlayerPosition(game_renderer, &player);
+  game_renderer->drawLine(0, screen_area.bot() - 5, screen_area.width() - 2, '_', WHITE, DEFAULT);
+  game_renderer->refresh();
 
   while (1) {
-    in_char = wgetch(main_wnd);
-    in_char = tolower(in_char);
+    // Simple input handling without ncurses
+    if (system("stty -icanon -echo") == 0) {
+        system("stty -icanon -echo");
+    }
+    
+    // Check for input (non-blocking)
+    fd_set readfds;
+    struct timeval tv;
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+    tv.tv_sec = 0;
+    tv.tv_usec = 10000; // 10ms timeout
+    
+    if (select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv) > 0) {
+        in_char = getchar();
+        in_char = tolower(in_char);
+    } else {
+        in_char = 0; // No input
+    }
 
     if (player.air_time == player.max_air_time && player.up) {
       player.air_time = 0;
@@ -179,7 +163,7 @@ bool run(int &max_score) {
       speed_tick++;
       if (speed_tick == speed_tick_cap) {
         speed_tick = 0;
-        if (field.update(game_wnd, player.bounds, player.score)) {
+        if (field.update(game_renderer, player.bounds, player.score)) {
           /* Collision occured; game over*/
           game_over = true;
         };
@@ -188,37 +172,31 @@ bool run(int &max_score) {
 
     if (dirt_tick == dirt_tick_cap) {
       dirt_tick = 0;
-      wattroff(game_wnd, A_BOLD);
-      df.update(game_wnd);
-      wattron(game_wnd, A_BOLD);
+      df.update(game_renderer);
     }
 
     if (feet_tick == 17) {
       feet_tick = 0;
       if (!player.up)
-        playerFeetAnimation(game_wnd, &player);
+        playerFeetAnimation(game_renderer, &player);
     }
 
-    wrefresh(main_wnd);
-    wrefresh(game_wnd);
+    main_renderer->refresh();
+    game_renderer->refresh();
 
     if (game_over) {
       max_score = player.score > max_score ? player.score : max_score;
       // Print game over message and prompt user for input
-      nodelay(game_wnd, false);
       int input;
-      // wattron(game_wnd, A_BLINK); Uncomment for blinking "GAME OVER" effect
-      mvwprintw(game_wnd, 9, 35, "GAME OVER");
-      // wattroff(game_wnd, A_BLINK); Uncomment for blinking "GAME OVER" effect
-      mvwprintw(game_wnd, 11, 29, "press 'q' to exit");
-      mvwprintw(game_wnd, 12, 29, "press 'r' to retry");
-      wrefresh(game_wnd);
+      game_renderer->drawString(35, 9, "GAME OVER", WHITE, DEFAULT);
+      game_renderer->drawString(29, 11, "press 'q' to exit", WHITE, DEFAULT);
+      game_renderer->drawString(29, 12, "press 'r' to retry", WHITE, DEFAULT);
+      game_renderer->refresh();
       usleep(50000); /* Gotta let the gamer read the info */
-      flushinp();
 
       while (1) {
-      input = wgetch(game_wnd);
-      input = tolower(input);
+        input = getchar();
+        input = tolower(input);
 
         switch (input) {
         case 'r':
@@ -237,9 +215,12 @@ bool run(int &max_score) {
       player.score += 1;
     }
 
-    mvwprintw(game_wnd, 0, 58, "HIGH SCORE: %8d", max_score);
-    mvwprintw(game_wnd, 1, 55, "CURRENT SCORE: %8d", player.score);
-    wrefresh(game_wnd);
+    char score_str[100];
+    sprintf(score_str, "HIGH SCORE: %8d", max_score);
+    game_renderer->drawString(58, 0, score_str, SCORE_COLOR, DEFAULT);
+    sprintf(score_str, "CURRENT SCORE: %8d", player.score);
+    game_renderer->drawString(55, 1, score_str, SCORE_COLOR, DEFAULT);
+    game_renderer->refresh();
 
     feet_tick++;
     dirt_tick++;
@@ -254,4 +235,7 @@ bool run(int &max_score) {
   }
 }
 
-void close() { endwin(); }
+void close() { 
+    delete main_renderer;
+    delete game_renderer;
+}

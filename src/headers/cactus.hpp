@@ -2,9 +2,8 @@
 
 #include <string>
 #include <vector>
-#include <ncurses.h>
 #include <random>
-
+#include "ansi_renderer.hpp"
 #include "game.hpp"
 #include "bird.hpp"   // Bird is the individual obstacle class
 
@@ -13,7 +12,7 @@ public:
     Cactus();
 
     // update returns true when collision happened
-    bool update(WINDOW* wnd, rect player_rect, int player_score);
+    bool update(class ANSIRenderer* renderer, rect player_rect, int player_score);
 
     // return the objects currently in the field
     std::vector<Bird> getObjects() const;

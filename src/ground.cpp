@@ -1,9 +1,9 @@
 #include "ground.hpp"
 #include "game.hpp"
+#include "ansi_renderer.hpp"
 #include <cstdint>
 #include <ctime>
 #include <random>
-#include <ncurses.h>
 #include <iostream>
 
 using namespace std;
@@ -14,18 +14,17 @@ Ground::Ground(int x, int y, char disp_char) {
   m_disp_char = disp_char;
 }
 
-void Ground::update(WINDOW *game_wnd) {
-  mvwaddch(game_wnd, m_position.y, m_position.x, static_cast<unsigned>(' '));
+void Ground::update(ANSIRenderer *game_renderer) {
+  game_renderer->drawChar(m_position.x, m_position.y, ' ', DEFAULT, DEFAULT);
   m_position.x -= 1;
-  mvwaddch(game_wnd, m_position.y, m_position.x,
-           static_cast<unsigned>(m_disp_char));
+  game_renderer->drawChar(m_position.x, m_position.y, m_disp_char, GROUND_TEXT, GROUND_BG);
 }
 
 vec2i Ground::getPos() const { return m_position; }
 
 // --- GROUND FIELD --- 
 
-void GroundField::update(WINDOW *game_wnd) {
+void GroundField::update(ANSIRenderer *game_renderer) {
   for (auto dirt_index{m_dirt_field.begin()}; dirt_index != m_dirt_field.end();
        ++dirt_index) {
     auto &dirt = *dirt_index;
@@ -33,7 +32,7 @@ void GroundField::update(WINDOW *game_wnd) {
       m_dirt_field.erase(dirt_index);
     }
 
-    dirt.update(game_wnd);
+    dirt.update(game_renderer);
   }
 
   random_device rd;  /* Obtain random number from hardware */

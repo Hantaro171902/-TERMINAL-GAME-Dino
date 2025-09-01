@@ -1,11 +1,11 @@
 #include "dinosaur.hpp"
-#include <ncurses.h>
+#include "ansi_renderer.hpp"
 
 
 /* MAKE THE PLAYABLE CHARACTER SWITCHABLE FROM A MENU */
 
 /* pos[i] is 'co' to disp_char[i] */
-void initPlayerPosition(WINDOW *game_wnd, Player *player) { /* {x,y} */
+void initPlayerPosition(ANSIRenderer *game_renderer, Player *player) { /* {x,y} */
   int y_start = 11;
   player->pos = {
       {10, y_start},     {11, y_start},     {12, y_start},
@@ -47,8 +47,7 @@ void initPlayerPosition(WINDOW *game_wnd, Player *player) { /* {x,y} */
   };
 
   for (size_t i = 0; i < player->disp_char.size(); i++) {
-    mvwaddch(game_wnd, player->pos[i].y, player->pos[i].x,
-             static_cast<unsigned>(player->disp_char[i]));
+    game_renderer->drawChar(player->pos[i].x, player->pos[i].y, player->disp_char[i], PLAYER_COLOR, DEFAULT);
   }
 
   player->crouched = false;
@@ -60,17 +59,15 @@ void playerDead() {
         player->disp_char[4] = '"';
 }*/
 
-void clearPlayerPosition(WINDOW *game_wnd, Player *player) {
+void clearPlayerPosition(ANSIRenderer *game_renderer, Player *player) {
   if (player->crouched) {
-    for (size_t i = 0; i < player->crouch_disp_char.size(); i++) {
-      if (player->crouch_pos[i].y == 19) {
-        mvwaddch(game_wnd, player->crouch_pos[i].y, player->crouch_pos[i].x,
-                 '_');
-      } else {
-        mvwaddch(game_wnd, player->crouch_pos[i].y, player->crouch_pos[i].x,
-                 ' ');
+          for (size_t i = 0; i < player->crouch_disp_char.size(); i++) {
+        if (player->crouch_pos[i].y == 19) {
+          game_renderer->drawChar(player->crouch_pos[i].x, player->crouch_pos[i].y, '_', WHITE, DEFAULT);
+        } else {
+          game_renderer->drawChar(player->crouch_pos[i].x, player->crouch_pos[i].y, ' ', DEFAULT, DEFAULT);
+        }
       }
-    }
     player->crouched = false;
 
     return;
@@ -78,21 +75,21 @@ void clearPlayerPosition(WINDOW *game_wnd, Player *player) {
 
   for (size_t i = 0; i < player->disp_char.size(); i++) {
     if (player->pos[i].y == 19) {
-      mvwaddch(game_wnd, player->pos[i].y, player->pos[i].x, '_');
+      game_renderer->drawChar(player->pos[i].x, player->pos[i].y, '_', WHITE, DEFAULT);
     } else {
-      mvwaddch(game_wnd, player->pos[i].y, player->pos[i].x, ' ');
+      game_renderer->drawChar(player->pos[i].x, player->pos[i].y, ' ', DEFAULT, DEFAULT);
     }
   }
 }
 
-void movePlayerDown(WINDOW *game_wnd, Player *player) {
-  clearPlayerPosition(game_wnd, player);
+void movePlayerDown(ANSIRenderer *game_renderer, Player *player) {
+  clearPlayerPosition(game_renderer, player);
 
   player->disp_char = "       ____ "
                       "      /0___}"
                       ",     ||    "
                       "|\\   / |    "
-                      "| \\_/  =    "
+                      "| \\_/  ==   "
                       " \\     |    "
                       "  \\ _  /    "
                       "  |/ [\\     "
@@ -105,14 +102,14 @@ void movePlayerDown(WINDOW *game_wnd, Player *player) {
   }
 }
 
-void movePlayerUp(WINDOW *game_wnd, Player *player) {
-  clearPlayerPosition(game_wnd, player);
+void movePlayerUp(ANSIRenderer *game_renderer, Player *player) {
+  clearPlayerPosition(game_renderer, player);
 
   player->disp_char = "       ____ "
                       "      /^___}"
                       ",     ||    "
                       "|\\   / |    "
-                      "| \\_/  =    "
+                      "| \\_/  ==   "
                       " \\     |    "
                       "  \\ _  /    "
                       "  |/ |/     "
@@ -120,14 +117,12 @@ void movePlayerUp(WINDOW *game_wnd, Player *player) {
 
   for (size_t i = 0; i < player->disp_char.size(); i++) {
     player->pos[i].y -= 8;
-    mvwaddch(game_wnd, player->pos[i].y, player->pos[i].x,
-             static_cast<unsigned>(player->disp_char[i]));
+    game_renderer->drawChar(player->pos[i].x, player->pos[i].y, player->disp_char[i], PLAYER_COLOR, DEFAULT);
   }
-  flushinp();
 }
 
-void crouchPlayer(WINDOW *game_wnd, Player *player) {
-  clearPlayerPosition(game_wnd, player);
+void crouchPlayer(ANSIRenderer *game_renderer, Player *player) {
+  clearPlayerPosition(game_renderer, player);
 
   int y_start = 14;
   player->crouch_pos = {
@@ -164,14 +159,13 @@ void crouchPlayer(WINDOW *game_wnd, Player *player) {
   };
 
   for (size_t i = 0; i < player->crouch_disp_char.size(); i++) {
-    mvwaddch(game_wnd, player->crouch_pos[i].y, player->crouch_pos[i].x,
-             static_cast<unsigned>(player->crouch_disp_char[i]));
+    game_renderer->drawChar(player->crouch_pos[i].x, player->crouch_pos[i].y, player->crouch_disp_char[i], PLAYER_COLOR, DEFAULT);
   }
 
   player->crouched = true;
 }
 
-void playerFeetAnimation(WINDOW *game_wnd, Player *player) {
+void playerFeetAnimation(ANSIRenderer *game_renderer, Player *player) {
   if (player->crouched) {
     if (player->crouch_disp_char[63] == '|' &&
         player->crouch_disp_char[64] == '/') {
@@ -202,8 +196,7 @@ void playerFeetAnimation(WINDOW *game_wnd, Player *player) {
     }
 
     for (size_t i = 63; i < player->crouch_disp_char.size(); i++) {
-      mvwaddch(game_wnd, player->crouch_pos[i].y, player->crouch_pos[i].x,
-               static_cast<unsigned>(player->crouch_disp_char[i]));
+      game_renderer->drawChar(player->crouch_pos[i].x, player->crouch_pos[i].y, player->crouch_disp_char[i], PLAYER_COLOR, DEFAULT);
     }
 
     return;
@@ -234,7 +227,6 @@ void playerFeetAnimation(WINDOW *game_wnd, Player *player) {
   }
 
   for (size_t i = 86; i < player->disp_char.size(); i++) {
-    mvwaddch(game_wnd, player->pos[i].y, player->pos[i].x,
-             static_cast<unsigned>(player->disp_char[i]));
+    game_renderer->drawChar(player->pos[i].x, player->pos[i].y, player->disp_char[i], PLAYER_COLOR, DEFAULT);
   }
 }
